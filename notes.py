@@ -27,3 +27,6 @@
 # True
 # 1 not in data 
 # False
+
+# there is for else
+# and while else 
