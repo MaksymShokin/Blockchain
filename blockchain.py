@@ -12,7 +12,7 @@ def get_last_blockchain_value():
     return blockchain[-1]
 
 
-def add_transaction(sender, recipient, amount=1.0):
+def add_transaction(recipient, sender=owner, amount=1.0):
     # add IDE descriptions
     """returns last blockchain value
 
@@ -65,7 +65,12 @@ while True:
     user_choice = input("Your choice: ")
 
     if user_choice == "1":
-        input_transaction_details()
+        tx_data = input_transaction_details()
+
+        recipient, amount = tx_data
+
+        add_transaction(recipient, amount=amount)
+        print(open_transactions)
     elif user_choice == "2":
         for block in blockchain:
             print(block)
