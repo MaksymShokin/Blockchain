@@ -30,3 +30,34 @@
 
 # there is for else
 # and while else 
+
+# using range function
+# 
+# def verify_chain():
+#     block_index = 0
+#     is_valid = True
+
+#     for block in blockchain:
+#         if block_index == 0:
+#             block_index += 1
+#             continue
+#         elif block[0] != blockchain[block_index - 1]:
+#             is_valid = False
+#             break
+#         block_index += 1
+
+#     return is_valid
+
+
+# def verify_chain():
+#     is_valid = True
+
+#     for block_index in range(len(blockchain)):
+#         if block_index == 0:
+
+#             continue
+#         elif blockchain[block_index][0] != blockchain[block_index - 1]:
+#             is_valid = False
+#             break
+
+#     return is_valid 
