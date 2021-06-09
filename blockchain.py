@@ -1,8 +1,33 @@
-genesis_block = {"previous_hash": "", "index": 0, "transactions": []}
-blockchain = [genesis_block]
+MINING_REWARD = 10
+GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": []}
+
+blockchain = [GENESIS_BLOCK]
 open_transactions = []
+participants = {"Maksym"}
 
 owner = "Maksym"
+
+
+def hash_block(block):
+    return "-".join([str(block[el]) for el in block])
+
+
+def get_balance(participant):
+    tx_sender = [[tx["amount"] for tx in block["transactions"] if tx["sender"] == participant] for block in blockchain]
+    amountSent = 0
+    for amount in tx_sender:
+        if len(amount) > 0:
+            amountSent += amount[0]
+
+    tx_recipient = [
+        [tx["amount"] for tx in block["transactions"] if tx["recipient"] == participant] for block in blockchain
+    ]
+    amountReceived = 0
+    for amount in tx_recipient:
+        if len(amount) > 0:
+            amountReceived += amount[0]
+
+    return amountSent, amountReceived
 
 
 def get_last_blockchain_value():
@@ -26,18 +51,22 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     transaction = {"sender": sender, "recipient": recipient, "amount": amount}
 
     open_transactions.append(transaction)
+    participants.add(sender)
+    participants.add(recipient)
 
 
 def mine_block():
-    last_block = blockchain[-1]
-
-    hashed_block = "-".join([str(last_block[el]) for el in last_block])
+    hashed_block = hash_block(blockchain[-1])
 
     print(hashed_block)
+
+    reward_transaction = {"sender": "Mining", "recipient": owner, "amount": MINING_REWARD}
+    open_transactions.append(reward_transaction)
 
     block = {"previous_hash": hashed_block, "index": len(blockchain), "transactions": open_transactions}
 
     blockchain.append(block)
+    return True
 
 
 def input_transaction_details():
@@ -49,19 +78,13 @@ def input_transaction_details():
 
 
 def verify_chain():
-    block_index = 0
-    is_valid = True
-
-    for block in blockchain:
-        if block_index == 0:
-            block_index += 1
+    # enumerate returns tuples with indexes
+    for (index, block) in enumerate(blockchain):
+        if index == 0:
             continue
-        elif block[0] != blockchain[block_index - 1]:
-            is_valid = False
-            break
-        block_index += 1
-
-    return is_valid
+        elif block["previous_hash"] != hash_block(blockchain[index - 1]):
+            return False
+    return True
 
 
 # print(blockchain)
@@ -70,6 +93,7 @@ while True:
     print("1: Add a new transaction")
     print("2: Mine new block")
     print("3: Output blockchain blocks")
+    print("4: Output participants")
     print("h: Manipulate the chain")
     print("q: Quit")
     user_choice = input("Your choice: ")
@@ -82,18 +106,26 @@ while True:
         add_transaction(recipient, amount=amount)
         print(open_transactions)
     elif user_choice == "2":
-        mine_block()
+        if mine_block():
+            open_transactions = []
     elif user_choice == "3":
         for block in blockchain:
             print(block)
+    elif user_choice == "4":
+        print(participants)
     elif user_choice == "h":
         if len(blockchain) >= 1:
-            blockchain[0] = [2]
+            blockchain[0] = {
+                "previous_hash": "",
+                "index": 0,
+                "transactions": [{"sender": "Chris", "recipient": "Max", "amount": 100}],
+            }
     elif user_choice == "q":
         break
     else:
         print("Incorrect choice")
 
-    # if not verify_chain():
-    #     print("Not valid blockchain")
-    #     break
+    print(get_balance("Maksym"))
+    if not verify_chain():
+        print("Not valid blockchain")
+        break
