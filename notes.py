@@ -25,14 +25,14 @@
 
 # 1 in data
 # True
-# 1 not in data 
+# 1 not in data
 # False
 
 # there is for else
-# and while else 
+# and while else
 
 # using range function
-# 
+#
 # def verify_chain():
 #     block_index = 0
 #     is_valid = True
@@ -60,4 +60,14 @@
 #             is_valid = False
 #             break
 
-#     return is_valid 
+#     return is_valid
+
+# is vs ==
+# is compares is object is same
+# == compares only values
+
+simple_list = [0, 1, 2, 3, 4]
+
+del simple_list[1]
+
+print(simple_list)

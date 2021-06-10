@@ -14,6 +14,9 @@ def hash_block(block):
 
 def get_balance(participant):
     tx_sender = [[tx["amount"] for tx in block["transactions"] if tx["sender"] == participant] for block in blockchain]
+    tx_sender_open_transactions = [tx["amount"] for tx in open_transactions if tx["sender"] == participant]
+    tx_sender.append(tx_sender_open_transactions)
+
     amountSent = 0
     for amount in tx_sender:
         if len(amount) > 0:
@@ -27,7 +30,15 @@ def get_balance(participant):
         if len(amount) > 0:
             amountReceived += amount[0]
 
-    return amountSent, amountReceived
+    currentAmount = amountReceived - amountSent
+
+    return currentAmount
+
+
+def verify_transaction(transaction):
+    sender_balance = get_balance(transaction["sender"])
+
+    return sender_balance > transaction["amount"]
 
 
 def get_last_blockchain_value():
@@ -50,9 +61,13 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     """
     transaction = {"sender": sender, "recipient": recipient, "amount": amount}
 
-    open_transactions.append(transaction)
-    participants.add(sender)
-    participants.add(recipient)
+    if verify_transaction(transaction):
+        open_transactions.append(transaction)
+        participants.add(sender)
+        participants.add(recipient)
+        return True
+
+    return False
 
 
 def mine_block():
@@ -61,7 +76,9 @@ def mine_block():
     print(hashed_block)
 
     reward_transaction = {"sender": "Mining", "recipient": owner, "amount": MINING_REWARD}
-    open_transactions.append(reward_transaction)
+
+    copied_transactions = open_transactions[:]
+    copied_transactions.append(reward_transaction)
 
     block = {"previous_hash": hashed_block, "index": len(blockchain), "transactions": open_transactions}
 
@@ -103,7 +120,11 @@ while True:
 
         recipient, amount = tx_data
 
-        add_transaction(recipient, amount=amount)
+        if add_transaction(recipient, amount=amount):
+            print("Transaction succeeded")
+        else:
+            print("Transaction failed")
+
         print(open_transactions)
     elif user_choice == "2":
         if mine_block():
