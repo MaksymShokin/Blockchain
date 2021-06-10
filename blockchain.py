@@ -61,7 +61,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     """
     transaction = {"sender": sender, "recipient": recipient, "amount": amount}
 
-    if verify_transaction(transaction):
+    if not verify_transaction(transaction):
         open_transactions.append(transaction)
         participants.add(sender)
         participants.add(recipient)
@@ -104,6 +104,10 @@ def verify_chain():
     return True
 
 
+def verify_transactions():
+    return all([verify_transaction(tx) for tx in open_transactions])
+
+
 # print(blockchain)
 while True:
     print("Make a choice: ")
@@ -111,6 +115,7 @@ while True:
     print("2: Mine new block")
     print("3: Output blockchain blocks")
     print("4: Output participants")
+    print("5: Verify transactions")
     print("h: Manipulate the chain")
     print("q: Quit")
     user_choice = input("Your choice: ")
@@ -134,6 +139,11 @@ while True:
             print(block)
     elif user_choice == "4":
         print(participants)
+    elif user_choice == "5":
+        if verify_transactions():
+            print("All transactions are valid")
+        else:
+            print("Some transactions are malformed")
     elif user_choice == "h":
         if len(blockchain) >= 1:
             blockchain[0] = {
