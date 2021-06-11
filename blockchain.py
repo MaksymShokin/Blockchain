@@ -61,7 +61,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
     """
     transaction = {"sender": sender, "recipient": recipient, "amount": amount}
 
-    if not verify_transaction(transaction):
+    if verify_transaction(transaction):
         open_transactions.append(transaction)
         participants.add(sender)
         participants.add(recipient)
