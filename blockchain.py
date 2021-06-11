@@ -19,26 +19,16 @@ def get_balance(participant):
     tx_sender_open_transactions = [tx["amount"] for tx in open_transactions if tx["sender"] == participant]
     tx_sender.append(tx_sender_open_transactions)
 
-    amount_sent = functools.reduce(lambda acc, val: acc + val[0] if len(val) > 0 else 0, tx_sender, 0)
+    amount_sent = functools.reduce(lambda acc, val: acc + sum(val) if len(val) > 0 else acc + 0, tx_sender, 0)
 
     tx_recipient = [
         [tx["amount"] for tx in block["transactions"] if tx["recipient"] == participant] for block in blockchain
     ]
 
-    amount_received = functools.reduce(lambda acc, val: acc + val[0] if len(val) > 0 else 0, tx_recipient, 0)
-
-    # amountSent = 0
-    # for amount in tx_sender:
-    #     if len(amount) > 0:
-    #         amountSent += amount[0]
-
-   
-    # amountReceived = 0
-    # for amount in tx_recipient:
-    #     if len(amount) > 0:
-    #         amountReceived += amount[0]
-
+    amount_received = functools.reduce(lambda acc, val: acc + sum(val) if len(val) > 0 else acc + 0, tx_recipient, 0)
+    print(amount_received - amount_sent)
     return amount_received - amount_sent
+
 
 def verify_transaction(transaction):
     sender_balance = get_balance(transaction["sender"])
@@ -161,7 +151,7 @@ while True:
     else:
         print("Incorrect choice")
 
-    print("Balance of {}: {:6.2f}".format("Maksym", get_balance("Maksym")))
+    print("Balance of {}: {:6.2f}".format("Maksym", float(get_balance("Maksym"))))
     if not verify_chain():
         print("Not valid blockchain")
         break
