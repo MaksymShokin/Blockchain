@@ -80,7 +80,7 @@ def mine_block():
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
 
-    block = {"previous_hash": hashed_block, "index": len(blockchain), "transactions": open_transactions}
+    block = {"previous_hash": hashed_block, "index": len(blockchain), "transactions": copied_transactions}
 
     blockchain.append(block)
     return True
@@ -156,7 +156,7 @@ while True:
     else:
         print("Incorrect choice")
 
-    print(get_balance("Maksym"))
+    print("Balance of {}: {:6.2f}".format("Maksym", get_balance("Maksym")))
     if not verify_chain():
         print("Not valid blockchain")
         break
