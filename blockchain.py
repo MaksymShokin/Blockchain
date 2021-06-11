@@ -1,3 +1,5 @@
+import functools
+
 MINING_REWARD = 10
 GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": []}
 
@@ -17,23 +19,26 @@ def get_balance(participant):
     tx_sender_open_transactions = [tx["amount"] for tx in open_transactions if tx["sender"] == participant]
     tx_sender.append(tx_sender_open_transactions)
 
-    amountSent = 0
-    for amount in tx_sender:
-        if len(amount) > 0:
-            amountSent += amount[0]
+    amount_sent = functools.reduce(lambda acc, val: acc + val[0] if len(val) > 0 else 0, tx_sender, 0)
 
     tx_recipient = [
         [tx["amount"] for tx in block["transactions"] if tx["recipient"] == participant] for block in blockchain
     ]
-    amountReceived = 0
-    for amount in tx_recipient:
-        if len(amount) > 0:
-            amountReceived += amount[0]
 
-    currentAmount = amountReceived - amountSent
+    amount_received = functools.reduce(lambda acc, val: acc + val[0] if len(val) > 0 else 0, tx_recipient, 0)
 
-    return currentAmount
+    # amountSent = 0
+    # for amount in tx_sender:
+    #     if len(amount) > 0:
+    #         amountSent += amount[0]
 
+   
+    # amountReceived = 0
+    # for amount in tx_recipient:
+    #     if len(amount) > 0:
+    #         amountReceived += amount[0]
+
+    return amount_received - amount_sent
 
 def verify_transaction(transaction):
     sender_balance = get_balance(transaction["sender"])
