@@ -3,7 +3,7 @@ import hashlib
 import json
 
 MINING_REWARD = 10
-GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": []}
+GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": [], "proof": 100}
 
 blockchain = [GENESIS_BLOCK]
 open_transactions = []
@@ -47,6 +47,27 @@ def get_last_blockchain_value():
     return blockchain[-1]
 
 
+def valid_proof(transactions, last_hash, proof):
+    guess = (str(transactions) + str(last_hash) + str(proof)).encode()
+    guess_hash = hashlib.sha256(guess).hexdigest()
+
+    print(guess_hash)
+
+    return guess_hash[0:2] == "00"
+
+
+def proof_of_work():
+    last_block = blockchain[-1]
+    last_hash = hash_block(last_block)
+
+    proof = 0
+
+    while not valid_proof(open_transactions, last_hash, proof):
+        proof += 1
+
+    return proof
+
+
 def add_transaction(recipient, sender=owner, amount=1.0):
     # add IDE descriptions
     """returns last blockchain value
@@ -71,14 +92,19 @@ def add_transaction(recipient, sender=owner, amount=1.0):
 def mine_block():
     hashed_block = hash_block(blockchain[-1])
 
-    print(hashed_block)
+    proof = proof_of_work()
 
     reward_transaction = {"sender": "Mining", "recipient": owner, "amount": MINING_REWARD}
 
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
 
-    block = {"previous_hash": hashed_block, "index": len(blockchain), "transactions": copied_transactions}
+    block = {
+        "previous_hash": hashed_block,
+        "index": len(blockchain),
+        "transactions": copied_transactions,
+        "proof": proof,
+    }
 
     blockchain.append(block)
     return True
@@ -97,7 +123,10 @@ def verify_chain():
     for (index, block) in enumerate(blockchain):
         if index == 0:
             continue
-        elif block["previous_hash"] != hash_block(blockchain[index - 1]):
+        if block["previous_hash"] != hash_block(blockchain[index - 1]):
+            return False
+        if not valid_proof(block["transactions"][:-1], block["previous_hash"], block["proof"]):
+            print("Proof of work is wrong")
             return False
     return True
 
