@@ -1,7 +1,7 @@
 from functools import reduce
-import hashlib
-import json
 from collections import OrderedDict
+
+from hash_util import hash_block, hash_string_256
 
 MINING_REWARD = 10
 GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": [], "proof": 100}
@@ -11,10 +11,6 @@ open_transactions = []
 participants = {"Maksym"}
 
 owner = "Maksym"
-
-
-def hash_block(block):
-    return hashlib.sha256(json.dumps(block, sort_keys=True).encode()).hexdigest()
 
 
 def get_balance(participant):
@@ -49,7 +45,7 @@ def get_last_blockchain_value():
 
 def valid_proof(transactions, last_hash, proof):
     guess = (str(transactions) + str(last_hash) + str(proof)).encode()
-    guess_hash = hashlib.sha256(guess).hexdigest()
+    guess_hash = hash_string_256(guess)
 
     return guess_hash[0:2] == "00"
 
