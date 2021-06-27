@@ -8,9 +8,8 @@ import pickle
 from hash_util import hash_block, hash_string_256
 
 MINING_REWARD = 10
-GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": [], "proof": 100}
 
-blockchain = [GENESIS_BLOCK]
+blockchain = []
 open_transactions = []
 participants = {"Maksym"}
 
@@ -18,11 +17,12 @@ owner = "Maksym"
 
 
 def load_data():
+    global blockchain
+    global open_transactions
+
     try:
         with open("blockchain.txt", mode="r") as t:
             file_content = t.readlines()
-            global blockchain
-            global open_transactions
 
             blockchain = json.loads(file_content[0][:-1])
             updated_blockchain = []
@@ -51,14 +51,17 @@ def load_data():
                 updated_transactions.append(updated_transaction)
 
             open_transactions = updated_transactions
-    except IOError:
+    except (IOError, IndexError):
+        GENESIS_BLOCK = {"previous_hash": "", "index": 0, "transactions": [], "proof": 100}
+
+        blockchain = [GENESIS_BLOCK]
         print("File not found")
-    except ValueError:
-        print("Values is not correct")
-    except:
-        print("All other errors")
-    finally:
-        print("Runs always")
+    # except ValueError:
+    #     print("Values is not correct")
+    # except:
+    #     print("All other errors")
+    # finally:
+    #     print("Runs always")
 
 
 load_data()
@@ -115,10 +118,13 @@ def valid_proof(transactions, last_hash, proof):
 
 
 def save_data():
-    with open("blockchain.txt", mode="w") as t:
-        t.write(json.dumps(blockchain))
-        t.write("\n")
-        t.write(json.dumps(open_transactions))
+    try:
+        with open("blockchain.txt", mode="w") as t:
+            t.write(json.dumps(blockchain))
+            t.write("\n")
+            t.write(json.dumps(open_transactions))
+    except IOError:
+        print("Save data fail")
 
 
 def save_data_binary():
