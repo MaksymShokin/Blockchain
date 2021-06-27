@@ -18,36 +18,47 @@ owner = "Maksym"
 
 
 def load_data():
-    with open("blockchain.txt", mode="r") as t:
-        file_content = t.readlines()
-        global blockchain
-        global open_transactions
+    try:
+        with open("blockchain.txt", mode="r") as t:
+            file_content = t.readlines()
+            global blockchain
+            global open_transactions
 
-        blockchain = json.loads(file_content[0][:-1])
-        updated_blockchain = []
-        for block in blockchain:
-            updated_block = {
-                "previous_hash": block["previous_hash"],
-                "index": block["index"],
-                "proof": block["proof"],
-                "transactions": [
-                    OrderedDict([("sender", tx["sender"]), ("recipient", tx["recipient"]), ("amount", tx["amount"])])
-                    for tx in block["transactions"]
-                ],
-            }
-            updated_blockchain.append(updated_block)
+            blockchain = json.loads(file_content[0][:-1])
+            updated_blockchain = []
+            for block in blockchain:
+                updated_block = {
+                    "previous_hash": block["previous_hash"],
+                    "index": block["index"],
+                    "proof": block["proof"],
+                    "transactions": [
+                        OrderedDict(
+                            [("sender", tx["sender"]), ("recipient", tx["recipient"]), ("amount", tx["amount"])]
+                        )
+                        for tx in block["transactions"]
+                    ],
+                }
+                updated_blockchain.append(updated_block)
 
-        blockchain = updated_blockchain
-        open_transactions = json.loads(file_content[1])
-        updated_transactions = []
+            blockchain = updated_blockchain
+            open_transactions = json.loads(file_content[1])
+            updated_transactions = []
 
-        for tx in open_transactions:
-            updated_transaction = OrderedDict(
-                [("sender", tx["sender"]), ("recipient", tx["recipient"]), ("amount", tx["amount"])]
-            )
-            updated_transactions.append(updated_transaction)
+            for tx in open_transactions:
+                updated_transaction = OrderedDict(
+                    [("sender", tx["sender"]), ("recipient", tx["recipient"]), ("amount", tx["amount"])]
+                )
+                updated_transactions.append(updated_transaction)
 
-        open_transactions = updated_transactions
+            open_transactions = updated_transactions
+    except IOError:
+        print("File not found")
+    except ValueError:
+        print("Values is not correct")
+    except:
+        print("All other errors")
+    finally:
+        print("Runs always")
 
 
 load_data()
