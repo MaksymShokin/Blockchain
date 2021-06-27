@@ -2,6 +2,9 @@ from functools import reduce
 from collections import OrderedDict
 import json
 
+# used to write and read binary data
+import pickle
+
 from hash_util import hash_block, hash_string_256
 
 MINING_REWARD = 10
@@ -50,6 +53,19 @@ def load_data():
 load_data()
 
 
+def load_data_binary():
+    with open("blockchain.p", mode="rb") as t:
+        file_content = t.readline()
+        global blockchain
+        global open_transactions
+
+        blockchain = pickle.loads(file_content["chain"])
+        open_transactions = pickle.loads(file_content["ot"])
+
+
+# load_data_binary()
+
+
 def get_balance(participant):
     tx_sender = [[tx["amount"] for tx in block["transactions"] if tx["sender"] == participant] for block in blockchain]
     tx_sender_open_transactions = [tx["amount"] for tx in open_transactions if tx["sender"] == participant]
@@ -92,6 +108,12 @@ def save_data():
         t.write(json.dumps(blockchain))
         t.write("\n")
         t.write(json.dumps(open_transactions))
+
+
+def save_data_binary():
+    with open("blockchain.txt", mode="wb") as t:
+        save_data = {"chain": blockchain, "ot": open_transactions}
+        t.write(pickle.dump(save_data))
 
 
 def proof_of_work():
