@@ -8,9 +8,16 @@ class Car:
     def driving(self):
         print(f"I am driving at maximum speed of {self.top_speed}")
 
+    def __repr__(self) -> str:
+        print('Printing')
+
+        return "Top speed: {}, warnings: {}".format(self.top_speed, self.warnings)
+
 
 car1 = Car()
 car1.driving()
+
+print(car1)
 
 car2 = Car()
 car2.driving()
