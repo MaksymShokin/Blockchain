@@ -3,19 +3,26 @@ class Car:
 
     def __init__(self, top_speed=100) -> None:
         self.top_speed = top_speed
-        self.warnings = []
+        self.__warnings = []
+        # private variable
 
     def driving(self):
         print(f"I am driving at maximum speed of {self.top_speed}")
 
     def __repr__(self) -> str:
-        print('Printing')
+        print("Printing")
 
-        return "Top speed: {}, warnings: {}".format(self.top_speed, self.warnings)
+        return "Top speed: {}, warnings: {}".format(self.top_speed, self.__warnings)
+
+    def add_warning(self, warning: str):
+        if len(warning) > 0:
+            self.__warnings.append(warning)
 
 
 car1 = Car()
 car1.driving()
+car1.add_warning('text')
+# car1.__warnings.append('more text')
 
 print(car1)
 
