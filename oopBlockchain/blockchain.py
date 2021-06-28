@@ -14,7 +14,6 @@ MINING_REWARD = 10
 
 blockchain = []
 open_transactions = []
-participants = {"Maksym"}
 
 owner = "Maksym"
 
@@ -146,8 +145,6 @@ def add_transaction(recipient, sender=owner, amount=1.0):
 
     if verify_transaction(transaction):
         open_transactions.append(transaction)
-        participants.add(sender)
-        participants.add(recipient)
         save_data()
         return True
 
@@ -201,8 +198,7 @@ while True:
     print("1: Add a new transaction")
     print("2: Mine new block")
     print("3: Output blockchain blocks")
-    print("4: Output participants")
-    print("5: Verify transactions")
+    print("4: Verify transactions")
     print("q: Quit")
     user_choice = input("Your choice: ")
 
@@ -225,8 +221,6 @@ while True:
         for block in blockchain:
             print(block)
     elif user_choice == "4":
-        print(participants)
-    elif user_choice == "5":
         if verify_transactions():
             print("All transactions are valid")
         else:
