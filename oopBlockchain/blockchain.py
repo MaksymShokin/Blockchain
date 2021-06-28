@@ -6,6 +6,7 @@ import json
 import pickle
 
 from block import Block
+from transaction import Transaction
 
 from hash_util import hash_block, hash_string_256
 
@@ -32,26 +33,10 @@ def load_data():
                 updated_block = Block(
                     block["index"],
                     block["previous_hash"],
-                    [
-                        OrderedDict(
-                            [("sender", tx["sender"]), ("recipient", tx["recipient"]), ("amount", tx["amount"])]
-                        )
-                        for tx in block["transactions"]
-                    ],
+                    [Transaction(tx["sender"], tx["recipient"], tx["amount"]) for tx in block["transactions"]],
                     block["proof"],
                     block["timestamp"],
                 )
-                # updated_block = {
-                #     "previous_hash": block["previous_hash"],
-                #     "index": block["index"],
-                #     "proof": block["proof"],
-                #     "transactions": [
-                #         OrderedDict(
-                #             [("sender", tx["sender"]), ("recipient", tx["recipient"]), ("amount", tx["amount"])]
-                #         )
-                #         for tx in block["transactions"]
-                #     ],
-                # }
                 updated_blockchain.append(updated_block)
 
             blockchain = updated_blockchain
@@ -59,9 +44,7 @@ def load_data():
             updated_transactions = []
 
             for tx in open_transactions:
-                updated_transaction = OrderedDict(
-                    [("sender", tx["sender"]), ("recipient", tx["recipient"]), ("amount", tx["amount"])]
-                )
+                updated_transaction = Transaction(tx.sender, tx.recipient, tx.amount)
                 updated_transactions.append(updated_transaction)
 
             open_transactions = updated_transactions
@@ -75,29 +58,14 @@ def load_data():
 load_data()
 
 
-def load_data_binary():
-    with open("blockchain.p", mode="rb") as t:
-        file_content = t.readline()
-        global blockchain
-        global open_transactions
-
-        blockchain = pickle.loads(file_content["chain"])
-        open_transactions = pickle.loads(file_content["ot"])
-
-
-# load_data_binary()
-
-
 def get_balance(participant):
-    tx_sender = [[tx["amount"] for tx in block.transactions if tx["sender"] == participant] for block in blockchain]
-    tx_sender_open_transactions = [tx["amount"] for tx in open_transactions if tx["sender"] == participant]
+    tx_sender = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in blockchain]
+    tx_sender_open_transactions = [tx.amount for tx in open_transactions if tx.sender == participant]
     tx_sender.append(tx_sender_open_transactions)
 
     amount_sent = reduce(lambda acc, val: acc + sum(val) if len(val) > 0 else acc + 0, tx_sender, 0)
 
-    tx_recipient = [
-        [tx["amount"] for tx in block.transactions if tx["recipient"] == participant] for block in blockchain
-    ]
+    tx_recipient = [[tx.amount for tx in block.transactions if tx.recipient == participant] for block in blockchain]
 
     amount_received = reduce(lambda acc, val: acc + sum(val) if len(val) > 0 else acc + 0, tx_recipient, 0)
     print(amount_received - amount_sent)
@@ -105,9 +73,9 @@ def get_balance(participant):
 
 
 def verify_transaction(transaction):
-    sender_balance = get_balance(transaction["sender"])
+    sender_balance = get_balance(transaction.sender)
 
-    return sender_balance > transaction["amount"]
+    return sender_balance > transaction.amount
 
 
 def get_last_blockchain_value():
@@ -119,7 +87,7 @@ def get_last_blockchain_value():
 
 
 def valid_proof(transactions, last_hash, proof):
-    guess = (str(transactions) + str(last_hash) + str(proof)).encode()
+    guess = (str([tx.to_ordered_dict() for tx in transactions]) + str(last_hash) + str(proof)).encode()
     guess_hash = hash_string_256(guess)
 
     return guess_hash[0:2] == "00"
@@ -128,19 +96,27 @@ def valid_proof(transactions, last_hash, proof):
 def save_data():
     try:
         with open("blockchain.txt", mode="w") as t:
-            saveable_chain = [block.__dict__ for block in blockchain]
+            saveable_chain = [
+                block.__dict__
+                for block in [
+                    Block(
+                        block_el.index,
+                        block_el.previous_hash,
+                        [tx.__dict__ for tx in block_el.transactions],
+                        block_el.proof,
+                        block_el.timestamp,
+                    )
+                    for block_el in blockchain
+                ]
+            ]
+
+            saveable_tx = [tx.__dict__ for tx in open_transactions]
 
             t.write(json.dumps(saveable_chain))
             t.write("\n")
-            t.write(json.dumps(open_transactions))
+            t.write(json.dumps(saveable_tx))
     except IOError:
         print("Save data fail")
-
-
-def save_data_binary():
-    with open("blockchain.txt", mode="wb") as t:
-        save_data = {"chain": blockchain, "ot": open_transactions}
-        t.write(pickle.dump(save_data))
 
 
 def proof_of_work():
@@ -166,7 +142,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
 
     """
 
-    transaction = OrderedDict([("sender", sender), ("recipient", recipient), ("amount", amount)])
+    transaction = Transaction(sender, recipient, amount)
 
     if verify_transaction(transaction):
         open_transactions.append(transaction)
@@ -183,7 +159,7 @@ def mine_block():
 
     proof = proof_of_work()
 
-    reward_transaction = OrderedDict([("sender", "Mining"), ("recipient", owner), ("amount", MINING_REWARD)])
+    reward_transaction = Transaction("Mining", owner, MINING_REWARD)
 
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
