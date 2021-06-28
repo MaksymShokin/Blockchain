@@ -128,7 +128,9 @@ def valid_proof(transactions, last_hash, proof):
 def save_data():
     try:
         with open("blockchain.txt", mode="w") as t:
-            t.write(json.dumps(blockchain))
+            saveable_chain = [block.__dict__ for block in blockchain]
+
+            t.write(json.dumps(saveable_chain))
             t.write("\n")
             t.write(json.dumps(open_transactions))
     except IOError:
@@ -163,11 +165,6 @@ def add_transaction(recipient, sender=owner, amount=1.0):
       :amount: The amount of coins
 
     """
-    # transaction = {
-    #     "sender": sender,
-    #     "recipient": recipient,
-    #     "amount": amount,
-    # }
 
     transaction = OrderedDict([("sender", sender), ("recipient", recipient), ("amount", amount)])
 
