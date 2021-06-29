@@ -1,14 +1,14 @@
 from functools import reduce
-from collections import OrderedDict
 import json
 
 # used to write and read binary data
-import pickle
 
 from block import Block
 from transaction import Transaction
+from verification import Verification
 
-from hash_util import hash_block, hash_string_256
+from hash_util import hash_block
+
 
 MINING_REWARD = 10
 
@@ -17,6 +17,7 @@ open_transactions = []
 
 owner = "Maksym"
 
+verifier = Verification()
 
 def load_data():
     global blockchain
@@ -71,25 +72,12 @@ def get_balance(participant):
     return amount_received - amount_sent
 
 
-def verify_transaction(transaction):
-    sender_balance = get_balance(transaction.sender)
-
-    return sender_balance > transaction.amount
-
-
 def get_last_blockchain_value():
     # add IDE descriptions
     """returns last blockchain value"""
     if len(blockchain) < 1:
         return None
     return blockchain[-1]
-
-
-def valid_proof(transactions, last_hash, proof):
-    guess = (str([tx.to_ordered_dict() for tx in transactions]) + str(last_hash) + str(proof)).encode()
-    guess_hash = hash_string_256(guess)
-
-    return guess_hash[0:2] == "00"
 
 
 def save_data():
@@ -124,7 +112,7 @@ def proof_of_work():
 
     proof = 0
 
-    while not valid_proof(open_transactions, last_hash, proof):
+    while not verifier.valid_proof(open_transactions, last_hash, proof):
         proof += 1
 
     return proof
@@ -143,7 +131,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
 
     transaction = Transaction(sender, recipient, amount)
 
-    if verify_transaction(transaction):
+    if verifier.verify_transaction(transaction, get_balance):
         open_transactions.append(transaction)
         save_data()
         return True
@@ -175,23 +163,6 @@ def input_transaction_details():
     return tx_recipient, tx_amount
 
 
-def verify_chain():
-    # enumerate returns tuples with indexes
-    for (index, block) in enumerate(blockchain):
-        if index == 0:
-            continue
-        if block.previous_hash != hash_block(blockchain[index - 1]):
-            return False
-        if not valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
-            print("Proof of work is wrong")
-            return False
-    return True
-
-
-def verify_transactions():
-    return all([verify_transaction(tx) for tx in open_transactions])
-
-
 # print(blockchain)
 while True:
     print("Make a choice: ")
@@ -221,7 +192,7 @@ while True:
         for block in blockchain:
             print(block)
     elif user_choice == "4":
-        if verify_transactions():
+        if verifier.verify_transactions(open_transactions, get_balance):
             print("All transactions are valid")
         else:
             print("Some transactions are malformed")
@@ -231,6 +202,6 @@ while True:
         print("Incorrect choice")
 
     print("Balance of {}: {:6.2f}".format("Maksym", float(get_balance("Maksym"))))
-    if not verify_chain():
+    if not verifier.verify_chain(blockchain):
         print("Not valid blockchain")
         break
