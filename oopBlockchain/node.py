@@ -1,6 +1,16 @@
+from uuid import uuid4
+
+from blockchain import Blockchain
+from verification import Verification
+
+verifier = Verification()
+
+
 class Node:
     def __init__(self) -> None:
-        self.blockchain = []
+        # self.id = str(uuid4())
+        self.id = "Max"
+        self.blockchain = Blockchain(self.id)
 
     def input_transaction_details(self):
         tx_recipient = input("Please enter recipient name: ")
@@ -8,7 +18,7 @@ class Node:
 
         return tx_recipient, tx_amount
 
-    def user_input(self):
+    def listen_for_input(self):
         while True:
             print("Make a choice: ")
             print("1: Add a new transaction")
@@ -23,21 +33,19 @@ class Node:
 
                 recipient, amount = tx_data
 
-                if add_transaction(recipient, amount=amount):
+                if self.blockchain.add_transaction(recipient, self.id, amount=amount):
                     print("Transaction succeeded")
                 else:
                     print("Transaction failed")
 
-                print(open_transactions)
+                print(self.blockchain.open_transactions)
             elif user_choice == "2":
-                if mine_block():
-                    open_transactions = []
-                    save_data()
+                self.blockchain.mine_block()
             elif user_choice == "3":
-                for block in self.blockchain:
+                for block in self.blockchain.chain:
                     print(block)
             elif user_choice == "4":
-                if verifier.verify_transactions(open_transactions, get_balance):
+                if verifier.verify_transactions(self.blockchain.open_transactions, self.blockchain.get_balance):
                     print("All transactions are valid")
                 else:
                     print("Some transactions are malformed")
@@ -46,7 +54,11 @@ class Node:
             else:
                 print("Incorrect choice")
 
-            print("Balance of {}: {:6.2f}".format("Maksym", float(get_balance("Maksym"))))
-            if not verifier.verify_chain(self.blockchain):
+            print("Balance of {}: {:6.2f}".format(self.id, float(self.blockchain.get_balance())))
+            if not verifier.verify_chain(self.blockchain.chain):
                 print("Not valid blockchain")
                 break
+
+
+node = Node()
+node.listen_for_input()

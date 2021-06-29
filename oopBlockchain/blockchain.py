@@ -18,12 +18,13 @@ verifier = Verification()
 
 
 class Blockchain:
-    def __init__(self) -> None:
+    def __init__(self, hosting_node_id) -> None:
         GENESIS_BLOCK = Block(0, "", [], 100, 0)
 
         self.chain = [GENESIS_BLOCK]
         self.open_transactions = []
         self.load_data()
+        self.hosting_node = hosting_node_id
 
     def load_data(self):
         try:
@@ -47,7 +48,7 @@ class Blockchain:
                 updated_transactions = []
 
                 for tx in open_transactions:
-                    updated_transaction = Transaction(tx.sender, tx.recipient, tx.amount)
+                    updated_transaction = Transaction(tx["sender"], tx["recipient"], tx["amount"])
                     updated_transactions.append(updated_transaction)
 
                 self.open_transactions = updated_transactions
@@ -90,7 +91,9 @@ class Blockchain:
 
         return proof
 
-    def get_balance(self, participant):
+    def get_balance(self):
+        participant = self.hosting_node
+
         tx_sender = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in self.chain]
         tx_sender_open_transactions = [tx.amount for tx in self.open_transactions if tx.sender == participant]
         tx_sender.append(tx_sender_open_transactions)
@@ -130,12 +133,12 @@ class Blockchain:
 
         return False
 
-    def mine_block(self, node):
+    def mine_block(self):
         hashed_block = hash_block(self.chain[-1])
 
         proof = self.proof_of_work()
 
-        reward_transaction = Transaction("Mining", node, MINING_REWARD)
+        reward_transaction = Transaction("Mining", self.hosting_node, MINING_REWARD)
 
         copied_transactions = self.open_transactions[:]
         copied_transactions.append(reward_transaction)
@@ -143,4 +146,6 @@ class Blockchain:
         block = Block(len(self.chain), hashed_block, copied_transactions, proof)
 
         self.chain.append(block)
+        self.open_transactions = []
+        self.save_data()
         return True
