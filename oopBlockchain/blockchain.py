@@ -5,9 +5,9 @@ import json
 
 from block import Block
 from transaction import Transaction
-from verification import Verification
 
-from hash_util import hash_block
+from utility.verification import Verification
+from utility.hash_util import hash_block
 
 
 MINING_REWARD = 10
