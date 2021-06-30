@@ -14,7 +14,6 @@ MINING_REWARD = 10
 
 owner = "Maksym"
 
-verifier = Verification()
 
 
 class Blockchain:
@@ -86,7 +85,7 @@ class Blockchain:
 
         proof = 0
 
-        while not verifier.valid_proof(self.open_transactions, last_hash, proof):
+        while not Verification.valid_proof(self.open_transactions, last_hash, proof):
             proof += 1
 
         return proof
@@ -126,7 +125,7 @@ class Blockchain:
 
         transaction = Transaction(sender, recipient, amount)
 
-        if verifier.verify_transaction(transaction, self.get_balance):
+        if Verification.verify_transaction(transaction, self.get_balance):
             self.open_transactions.append(transaction)
             self.save_data()
             return True
