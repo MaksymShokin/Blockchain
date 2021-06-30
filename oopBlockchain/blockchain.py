@@ -20,13 +20,18 @@ class Blockchain:
     def __init__(self, hosting_node_id) -> None:
         GENESIS_BLOCK = Block(0, "", [], 100, 0)
 
-        self.__chain = [GENESIS_BLOCK]
+        self.chain = [GENESIS_BLOCK]
         self.__open_transactions = []
         self.load_data()
         self.hosting_node = hosting_node_id
 
-    def get_blockchain(self):
+    @property
+    def chain(self):
       return self.__chain[:]
+
+    @chain.setter
+    def chain(self, val):
+      self.__chain = val
 
     def get_open_transactions(self):
       return self.__open_transactions[:]
@@ -48,7 +53,7 @@ class Blockchain:
                     )
                     updated_blockchain.append(updated_block)
 
-                self.__chain = updated_blockchain
+                self.chain = updated_blockchain
                 open_transactions = json.loads(file_content[1])
                 updated_transactions = []
 

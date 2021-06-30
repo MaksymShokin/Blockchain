@@ -40,7 +40,7 @@ class Node:
             elif user_choice == "2":
                 self.blockchain.mine_block()
             elif user_choice == "3":
-                for block in self.blockchain.get_blockchain():
+                for block in self.blockchain.chain:
                     print(block)
             elif user_choice == "4":
                 if Verification.verify_transactions(self.blockchain.get_open_transactions(), self.blockchain.get_balance):
@@ -53,7 +53,7 @@ class Node:
                 print("Incorrect choice")
 
             print("Balance of {}: {:6.2f}".format(self.id, float(self.blockchain.get_balance())))
-            if not Verification.verify_chain(self.blockchain.get_blockchain()):
+            if not Verification.verify_chain(self.blockchain.chain):
                 print("Not valid blockchain")
                 break
 
