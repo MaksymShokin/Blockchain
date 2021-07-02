@@ -3,13 +3,15 @@ from uuid import uuid4
 from blockchain import Blockchain
 
 from utility.verification import Verification
+from wallet import Wallet
 
 
 class Node:
     def __init__(self) -> None:
         # self.id = str(uuid4())
         self.id = "Max"
-        self.blockchain = Blockchain(self.id)
+        self.wallet = Wallet()
+        self.blockchain = Blockchain(self.wallet.public_key)
 
     def input_transaction_details(self):
         tx_recipient = input("Please enter recipient name: ")
@@ -24,6 +26,8 @@ class Node:
             print("2: Mine new block")
             print("3: Output blockchain blocks")
             print("4: Verify transactions")
+            print("5: Create wallet")
+            print("6: Load wallet")
             print("q: Quit")
             user_choice = input("Your choice: ")
 
@@ -32,7 +36,7 @@ class Node:
 
                 recipient, amount = tx_data
 
-                if self.blockchain.add_transaction(recipient, self.id, amount=amount):
+                if self.blockchain.add_transaction(recipient, self.wallet.public_key, amount=amount):
                     print("Transaction succeeded")
                 else:
                     print("Transaction failed")
@@ -44,21 +48,28 @@ class Node:
                 for block in self.blockchain.chain:
                     print(block)
             elif user_choice == "4":
-                if Verification.verify_transactions(self.blockchain.get_open_transactions(), self.blockchain.get_balance):
+                if Verification.verify_transactions(
+                    self.blockchain.get_open_transactions(), self.blockchain.get_balance
+                ):
                     print("All transactions are valid")
                 else:
                     print("Some transactions are malformed")
+            elif user_choice == "5":
+                self.wallet.create_keys()
+            elif user_choice == "6":
+                pass
             elif user_choice == "q":
                 break
             else:
                 print("Incorrect choice")
 
-            print("Balance of {}: {:6.2f}".format(self.id, float(self.blockchain.get_balance())))
+            print("Balance of {}: {:6.2f}".format(self.wallet.public_key, float(self.blockchain.get_balance())))
             if not Verification.verify_chain(self.blockchain.chain):
                 print("Not valid blockchain")
                 break
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     node = Node()
     node.listen_for_input()
 

@@ -15,7 +15,6 @@ MINING_REWARD = 10
 owner = "Maksym"
 
 
-
 class Blockchain:
     def __init__(self, hosting_node_id) -> None:
         GENESIS_BLOCK = Block(0, "", [], 100, 0)
@@ -27,14 +26,14 @@ class Blockchain:
 
     @property
     def chain(self):
-      return self.__chain[:]
+        return self.__chain[:]
 
     @chain.setter
     def chain(self, val):
-      self.__chain = val
+        self.__chain = val
 
     def get_open_transactions(self):
-      return self.__open_transactions[:]
+        return self.__open_transactions[:]
 
     def load_data(self):
         try:
@@ -110,7 +109,9 @@ class Blockchain:
 
         amount_sent = reduce(lambda acc, val: acc + sum(val) if len(val) > 0 else acc + 0, tx_sender, 0)
 
-        tx_recipient = [[tx.amount for tx in block.transactions if tx.recipient == participant] for block in self.__chain]
+        tx_recipient = [
+            [tx.amount for tx in block.transactions if tx.recipient == participant] for block in self.__chain
+        ]
 
         amount_received = reduce(lambda acc, val: acc + sum(val) if len(val) > 0 else acc + 0, tx_recipient, 0)
         print(amount_received - amount_sent)
@@ -131,8 +132,10 @@ class Blockchain:
           :sender: The sender of coins
           :recipient: The recipient of coins
           :amount: The amount of coins
-
         """
+
+        if self.hosting_node == None:
+            return False
 
         transaction = Transaction(sender, recipient, amount)
 
@@ -144,6 +147,9 @@ class Blockchain:
         return False
 
     def mine_block(self):
+        if self.hosting_node == None:
+            return False
+
         hashed_block = hash_block(self.__chain[-1])
 
         proof = self.proof_of_work()
