@@ -62,3 +62,6 @@ if __name__ == '__main__':
     node = Node()
     node.listen_for_input()
 
+
+# activate anaconda environment
+# source activate pycoin
