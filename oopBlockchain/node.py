@@ -11,6 +11,7 @@ class Node:
         # self.id = str(uuid4())
         self.id = "Max"
         self.wallet = Wallet()
+        self.wallet.create_keys()
         self.blockchain = Blockchain(self.wallet.public_key)
 
     def input_transaction_details(self):
@@ -28,6 +29,7 @@ class Node:
             print("4: Verify transactions")
             print("5: Create wallet")
             print("6: Load wallet")
+            print("7: Save keys")
             print("q: Quit")
             user_choice = input("Your choice: ")
 
@@ -43,7 +45,8 @@ class Node:
 
                 print(self.blockchain.get_open_transactions())
             elif user_choice == "2":
-                self.blockchain.mine_block()
+                if not self.blockchain.mine_block():
+                    print("Mining failed. Got no wallet")
             elif user_choice == "3":
                 for block in self.blockchain.chain:
                     print(block)
@@ -56,8 +59,12 @@ class Node:
                     print("Some transactions are malformed")
             elif user_choice == "5":
                 self.wallet.create_keys()
+                self.blockchain = Blockchain(self.wallet.public_key)
             elif user_choice == "6":
-                pass
+                self.wallet.load_keys()
+                self.blockchain = Blockchain(self.wallet.public_key)
+            elif user_choice == "7":
+                self.wallet.save_keys()
             elif user_choice == "q":
                 break
             else:
