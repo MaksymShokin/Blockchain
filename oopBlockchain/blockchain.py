@@ -8,6 +8,7 @@ from transaction import Transaction
 
 from utility.verification import Verification
 from utility.hash_util import hash_block
+from wallet import Wallet
 
 
 MINING_REWARD = 10
@@ -46,7 +47,10 @@ class Blockchain:
                     updated_block = Block(
                         block["index"],
                         block["previous_hash"],
-                        [Transaction(tx["sender"], tx["recipient"], tx["amount"]) for tx in block["transactions"]],
+                        [
+                            Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"])
+                            for tx in block["transactions"]
+                        ],
                         block["proof"],
                         block["timestamp"],
                     )
@@ -57,7 +61,7 @@ class Blockchain:
                 updated_transactions = []
 
                 for tx in open_transactions:
-                    updated_transaction = Transaction(tx["sender"], tx["recipient"], tx["amount"])
+                    updated_transaction = Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"])
                     updated_transactions.append(updated_transaction)
 
                 self.open_transactions = updated_transactions
@@ -95,7 +99,7 @@ class Blockchain:
 
         proof = 0
 
-        while not Verification.valid_proof(self.open_transactions, last_hash, proof):
+        while not Verification.valid_proof(self.get_open_transactions(), last_hash, proof):
             proof += 1
 
         return proof
@@ -124,23 +128,24 @@ class Blockchain:
             return None
         return self.__chain[-1]
 
-    def add_transaction(self, recipient, sender=owner, amount=1.0):
+    def add_transaction(self, recipient, sender, signature, amount=1.0):
         # add IDE descriptions
         """returns last blockchain value
 
         Arguments:
           :sender: The sender of coins
           :recipient: The recipient of coins
+          :signature: The signature of transaction
           :amount: The amount of coins
         """
 
         if self.hosting_node == None:
             return False
 
-        transaction = Transaction(sender, recipient, amount)
+        transaction = Transaction(sender, recipient, signature, amount)
 
         if Verification.verify_transaction(transaction, self.get_balance):
-            self.open_transactions.append(transaction)
+            self.__open_transactions.append(transaction)
             self.save_data()
             return True
 
@@ -154,9 +159,12 @@ class Blockchain:
 
         proof = self.proof_of_work()
 
-        reward_transaction = Transaction("Mining", self.hosting_node, MINING_REWARD)
+        reward_transaction = Transaction("Mining", self.hosting_node, "", MINING_REWARD)
 
-        copied_transactions = self.open_transactions[:]
+        copied_transactions = self.get_open_transactions()
+        for tx in copied_transactions:
+          if not Wallet.verify_transaction(tx):
+              return False
         copied_transactions.append(reward_transaction)
 
         block = Block(len(self.__chain), hashed_block, copied_transactions, proof)

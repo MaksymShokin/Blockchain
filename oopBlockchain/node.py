@@ -38,7 +38,9 @@ class Node:
 
                 recipient, amount = tx_data
 
-                if self.blockchain.add_transaction(recipient, self.wallet.public_key, amount=amount):
+                signature = self.wallet.sign_transaction(self.wallet.public_key, recipient, amount)
+
+                if self.blockchain.add_transaction(recipient, self.wallet.public_key, signature, amount=amount):
                     print("Transaction succeeded")
                 else:
                     print("Transaction failed")
