@@ -105,10 +105,13 @@ class Blockchain:
         return proof
 
     def get_balance(self):
+        if self.hosting_node == None:
+            return None
+
         participant = self.hosting_node
 
         tx_sender = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in self.__chain]
-        tx_sender_open_transactions = [tx.amount for tx in self.open_transactions if tx.sender == participant]
+        tx_sender_open_transactions = [tx.amount for tx in self.__open_transactions if tx.sender == participant]
         tx_sender.append(tx_sender_open_transactions)
 
         amount_sent = reduce(lambda acc, val: acc + sum(val) if len(val) > 0 else acc + 0, tx_sender, 0)
@@ -163,8 +166,8 @@ class Blockchain:
 
         copied_transactions = self.get_open_transactions()
         for tx in copied_transactions:
-          if not Wallet.verify_transaction(tx):
-              return None
+            if not Wallet.verify_transaction(tx):
+                return None
         copied_transactions.append(reward_transaction)
 
         block = Block(len(self.__chain), hashed_block, copied_transactions, proof)
