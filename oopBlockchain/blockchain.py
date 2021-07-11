@@ -85,7 +85,7 @@ class Blockchain:
                     ]
                 ]
 
-                saveable_tx = [tx.__dict__ for tx in self.open_transactions]
+                saveable_tx = [tx.__dict__ for tx in self.get_open_transactions()]
 
                 t.write(json.dumps(saveable_chain))
                 t.write("\n")
@@ -173,6 +173,6 @@ class Blockchain:
         block = Block(len(self.__chain), hashed_block, copied_transactions, proof)
 
         self.__chain.append(block)
-        self.open_transactions = []
+        self.__open_transactions = []
         self.save_data()
         return block

@@ -95,6 +95,13 @@ def get_ui():
     return "This route"
 
 
+@app.route("/transactions", methods=["GET"])
+def get_open_transaction():
+    transactions = blockchain.get_open_transactions()
+    dict_transactions = [tx.__dict__ for tx in transactions]
+    return jsonify(dict_transactions), 200
+
+
 @app.route("/balance", methods=["GET"])
 def get_balance():
     balance = blockchain.get_balance()
