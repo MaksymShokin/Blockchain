@@ -22,13 +22,17 @@ class Blockchain:
 
         self.chain = [GENESIS_BLOCK]
         self.__open_transactions = []
-        self.load_data()
         self.hosting_node = hosting_node_id
         self.__peer_of_nodes = set()
+        self.load_data()
 
     @property
     def chain(self):
         return self.__chain[:]
+
+    @property
+    def all_nodes(self):
+        return list(self.__peer_of_nodes)
 
     @chain.setter
     def chain(self, val):
