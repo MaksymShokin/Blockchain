@@ -24,6 +24,7 @@ class Blockchain:
         self.__open_transactions = []
         self.load_data()
         self.hosting_node = hosting_node_id
+        self.__peer_of_nodes = set()
 
     @property
     def chain(self):
@@ -57,7 +58,7 @@ class Blockchain:
                     updated_blockchain.append(updated_block)
 
                 self.chain = updated_blockchain
-                open_transactions = json.loads(file_content[1])
+                open_transactions = json.loads(file_content[1][:-1])
                 updated_transactions = []
 
                 for tx in open_transactions:
@@ -65,6 +66,8 @@ class Blockchain:
                     updated_transactions.append(updated_transaction)
 
                 self.open_transactions = updated_transactions
+                peer_nodes = json.loads(file_content[2])
+                self.__peer_of_nodes = set(peer_nodes)
         except (IOError, IndexError):
             print("File not found")
 
@@ -90,6 +93,8 @@ class Blockchain:
                 t.write(json.dumps(saveable_chain))
                 t.write("\n")
                 t.write(json.dumps(saveable_tx))
+                t.write("\n")
+                t.write(json.dumps(list(self.__peer_of_nodes)))
         except IOError:
             print("Save data fail")
 
@@ -176,3 +181,19 @@ class Blockchain:
         self.__open_transactions = []
         self.save_data()
         return block
+
+    def add_peer_node(self, node):
+        """Function that adds peer node to the set
+          Arguments:
+            :node: Node url
+        """
+        self.__peer_of_nodes.add(node)
+        self.save_data()
+
+    def remove_peer_node(self, node):
+        """Function that removes peer node from the set
+          Arguments:
+            :node: Node url
+        """
+        self.__peer_of_nodes.discard(node)
+        self.save_data()
