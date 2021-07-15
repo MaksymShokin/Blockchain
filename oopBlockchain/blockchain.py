@@ -17,13 +17,14 @@ owner = "Maksym"
 
 
 class Blockchain:
-    def __init__(self, hosting_node_id) -> None:
+    def __init__(self, hosting_node_id, port) -> None:
         GENESIS_BLOCK = Block(0, "", [], 100, 0)
 
         self.chain = [GENESIS_BLOCK]
         self.__open_transactions = []
         self.hosting_node = hosting_node_id
         self.__peer_of_nodes = set()
+        self.port = port
         self.load_data()
 
     @property
@@ -43,7 +44,7 @@ class Blockchain:
 
     def load_data(self):
         try:
-            with open("blockchain.txt", mode="r") as t:
+            with open("blockchain-{}.txt".format(self.port), mode="r") as t:
                 file_content = t.readlines()
 
                 blockchain = json.loads(file_content[0][:-1])
@@ -77,7 +78,7 @@ class Blockchain:
 
     def save_data(self):
         try:
-            with open("blockchain.txt", mode="w") as t:
+            with open("blockchain-{}.txt".format(self.port), mode="w") as t:
                 saveable_chain = [
                     block.__dict__
                     for block in [
