@@ -42,6 +42,43 @@ def create_keys():
         return jsonify(response), 500
 
 
+@app.route("/broadcast-transaction", methods=["POST"])
+def broadcast_transaction():
+    values = request.get_json()
+
+    if not values:
+        response = {
+            "message": "no data found",
+        }
+        return response, 400
+
+    required = ["sender", "recipient", "amount", "signature"]
+    if not all(key in values for key in required):
+        response = {
+            "message": "data missing",
+        }
+        return response, 400
+
+    success = blockchain.add_transaction(
+        values["recipient"], values["sender"], values["signature"], values["amount"], is_receiving=True
+    )
+
+    if success:
+        response = {
+            "message": "Transaction created successfully",
+            "transaction": {
+                "sender": values["sender"],
+                "recipient": values["recipient"],
+                "signature": values["signature"],
+                "amount": values["amount"],
+            },
+        }
+        return jsonify(response), 201
+    else:
+        response = {"message": "Transaction addition failed"}
+        return jsonify(response), 500
+
+
 @app.route("/wallet", methods=["GET"])
 def load_keys():
     if wallet.load_keys():
