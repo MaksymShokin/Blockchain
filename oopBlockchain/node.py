@@ -103,12 +103,14 @@ def broadcast_block():
             return jsonify(response), 201
         else:
             response = {"message": "Block addition failed"}
-            return jsonify(response), 500
+            return jsonify(response), 409
 
     elif block["index"] > blockchain.chain[-1].index:
-        pass
+        response = {"message": "Incoming blockchain is different from local blockchain"}
+        blockchain.resolve_conflicts = True
+        return jsonify(response), 200
     else:
-        response = {"message": "Incoming block is shorter, doing nothing"}
+        response = {"message": "Incoming blockchain is shorter, doing nothing"}
         return jsonify(response), 409
 
 
@@ -204,8 +206,22 @@ def get_chain():
     return jsonify(dict_chain), 200
 
 
+@app.route("/resolve-conflicts", methods=["POST"])
+def resolve_conflicts():
+    replaced = blockchain.resolve()
+    if replaced:
+        response = {"message": "Chain was replaced!"}
+    else:
+        response = {"message": "Local chain kept!"}
+    return jsonify(response), 200
+
+
 @app.route("/mine", methods=["POST"])
 def mine():
+    if blockchain.resolve_conflicts:
+        response = {"message": "Resolve conflicts first, block not added"}
+        return jsonify(response), 409
+
     block = blockchain.mine_block()
     if block != None:
         dict_block = block.__dict__.copy()

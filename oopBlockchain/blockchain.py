@@ -27,6 +27,7 @@ class Blockchain:
         self.hosting_node = hosting_node_id
         self.__peer_of_nodes = set()
         self.port = port
+        self.resolve_conflicts = False
         self.load_data()
 
     @property
@@ -209,7 +210,7 @@ class Blockchain:
 
                         if response.status_code == 400:
                             print("client error")
-                        if response.status_code == 500:
+                        elif response.status_code == 500:
                             print("server error")
 
                     except request.exception.ConnectionError:
@@ -217,6 +218,41 @@ class Blockchain:
             return True
 
         return False
+
+    def resolve(self):
+        winner_chain = self.chain
+        replace = False
+        for node in self.__peer_of_nodes:
+            url = "http://{}/chain".format(node)
+            try:
+                response = requests.get(url)
+                node_chain = response.json()
+                node_chain = [
+                    Block(
+                        block["index"],
+                        block["previous_hash"],
+                        [
+                            Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"])
+                            for tx in block["transactions"]
+                        ],
+                        block["proof"],
+                        block["timestamp"],
+                    )
+                    for block in node_chain
+                ]
+                node_chain_length = len(node_chain)
+                local_chain_length = len(winner_chain)
+                if node_chain_length > local_chain_length and Verification.verify_chain(node_chain):
+                    winner_chain = node_chain
+                    replace = True
+            except requests.exceptions.ConnectionError:
+                continue
+        self.resolve_conflicts = False
+        self.chain = winner_chain
+        if replace:
+            self.__open_transactions = []
+        self.save_data()
+        return replace
 
     def mine_block(self):
         if self.hosting_node == None:
@@ -252,6 +288,8 @@ class Blockchain:
                     print("block client error")
                 elif response.status_code == 500:
                     print("block server error")
+                elif response.status_code == 409:
+                    self.resolve_conflicts = True
 
             except request.exception.ConnectionError:
                 continue
