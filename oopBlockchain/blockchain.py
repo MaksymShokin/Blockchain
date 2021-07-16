@@ -105,6 +105,25 @@ class Blockchain:
         except IOError:
             print("Save data fail")
 
+    def add_block(self, block):
+        transactions = [
+            Transaction(tx["sender"], tx["recipient"], tx["signature"], tx["amount"]) for tx in block["transactions"]
+        ]
+
+        proof_is_valid = Verification.valid_proof(transactions[:-1], block["previous_hash"], block["proof"])
+        hashes_match = hash_block(self.chain[-1]) == block["previous_hash"]
+
+        if not proof_is_valid or not hashes_match:
+            return False
+
+        converted_block = Block(
+            block["index"], block["previous_hash"], transactions, block["proof"], block["timestamp"]
+        )
+
+        self.__chain.append(converted_block)
+        self.save_data()
+        return True
+
     def proof_of_work(self):
         last_block = self.__chain[-1]
         last_hash = hash_block(last_block)
@@ -157,8 +176,8 @@ class Blockchain:
           :amount: The amount of coins
         """
 
-        if self.hosting_node == None:
-            return False
+        # if self.hosting_node == None:
+        #     return False
 
         transaction = Transaction(sender, recipient, signature, amount)
 
@@ -207,6 +226,22 @@ class Blockchain:
         self.__chain.append(block)
         self.__open_transactions = []
         self.save_data()
+
+        for node in self.__peer_of_nodes:
+            url = "http://{}/broadcast-block".format(node)
+            converted_block = block.__dict__.copy()
+            converted_block["transactions"] = [tx.__dict__ for tx in converted_block["transactions"]]
+
+            try:
+                response = requests.post(url, json={"block": converted_block},)
+
+                if response.status_code == 400:
+                    print("block client error")
+                elif response.status_code == 500:
+                    print("block server error")
+
+            except request.exception.ConnectionError:
+                continue
         return block
 
     def add_peer_node(self, node):
